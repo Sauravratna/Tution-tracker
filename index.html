@@ -3,38 +3,46 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>টিউশন হাজিরা ও PWA ম্যানেজার</title>
-    <!-- Manifest Link for PWA -->
-    <link rel="manifest" href="manifest.json">
-    <meta name="theme-color" content="#4f46e5">
-    
+    <title>প্রোফেশনাল টিউশন ও স্টাডি ম্যানেজার</title>
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
     <!-- FontAwesome Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
-<body class="bg-slate-50 font-sans text-slate-800 min-h-screen p-4 md:p-8">
+<body class="bg-slate-100 font-sans text-slate-800 min-h-screen p-4 md:p-6">
 
-    <div class="max-w-4xl mx-auto">
+    <div class="max-w-6xl mx-auto">
         <!-- Header -->
         <header class="bg-indigo-600 text-white p-6 rounded-2xl shadow-lg mb-6 flex flex-col md:flex-row justify-between items-center gap-4">
             <div>
-                <h1 class="text-2xl md:text-3xl font-bold"><i class="fa-solid fa-graduation-cap mr-2"></i> টিউশন হাজিরা ম্যানেজার</h1>
-                <p class="text-indigo-100 text-sm mt-1">ছাত্রদের হাজিরা, মাসিক টার্গেট ও অফলাইন শিডিউল</p>
+                <h1 class="text-2xl md:text-3xl font-bold"><i class="fa-solid fa-graduation-cap mr-2"></i> টিউশন ও স্টাডি ম্যানেজার</h1>
+                <p class="text-indigo-100 text-sm mt-1">হাজিরা, সাপ্তাহিক রুটিন, টপিকস এবং হোমওয়ার্ক ট্র্যাকিং সিস্টেম</p>
             </div>
-            <button onclick="openModal()" class="bg-white text-indigo-600 px-5 py-2.5 rounded-xl font-semibold shadow hover:bg-indigo-50 transition cursor-pointer">
-                <i class="fa-solid fa-plus mr-1"></i> নতুন ছাত্র যোগ করুন
+            <button onclick="openAddModal()" class="bg-white text-indigo-600 px-5 py-2.5 rounded-xl font-semibold shadow hover:bg-indigo-50 transition cursor-pointer">
+                <i class="fa-solid fa-user-plus mr-1"></i> নতুন ছাত্র যোগ করুন
             </button>
         </header>
 
-        <!-- Student List Container -->
-        <div id="student-list" class="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <!-- Dynamic Cards will load here -->
+        <!-- Main Dashboard View -->
+        <div id="main-view">
+            <div id="student-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <!-- Dynamic Cards -->
+            </div>
+        </div>
+
+        <!-- Student Profile & Management View (Hidden by default) -->
+        <div id="profile-view" class="hidden">
+            <button onclick="backToDashboard()" class="mb-4 bg-slate-200 hover:bg-slate-300 px-4 py-2 rounded-xl text-slate-700 font-medium transition cursor-pointer">
+                <i class="fa-solid fa-arrow-left mr-2"></i> ড্যাশবোর্ডে ফিরে যান
+            </button>
+            <div id="profile-content">
+                <!-- Dynamic Profile Details -->
+            </div>
         </div>
     </div>
 
     <!-- Modal for Adding Student -->
-    <div id="studentModal" class="fixed inset-0 bg-black/50 hidden items-center justify-center p-4 z-50">
+    <div id="addStudentModal" class="fixed inset-0 bg-black/50 hidden items-center justify-center p-4 z-50">
         <div class="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl relative">
             <h2 class="text-xl font-bold mb-4 text-slate-800"><i class="fa-solid fa-user-plus text-indigo-600 mr-2"></i> নতুন ছাত্রের তথ্য</h2>
             <form id="studentForm">
@@ -52,207 +60,328 @@
                         <input type="number" id="targetDays" value="16" min="1" max="31" required class="w-full px-4 py-2 border rounded-xl focus:ring-2 focus:ring-indigo-500 focus:outline-none">
                     </div>
                     <div>
-                        <label class="block text-sm font-medium text-slate-600 mb-1">নির্ধারিত সময়</label>
+                        <label class="block text-sm font-medium text-slate-600 mb-1">সাধারণ সময়</label>
                         <input type="time" id="classTime" value="16:00" required class="w-full px-4 py-2 border rounded-xl focus:ring-2 focus:ring-indigo-500 focus:outline-none">
                     </div>
                 </div>
                 <div class="flex justify-end gap-3 mt-6">
-                    <button type="button" onclick="closeModal()" class="px-4 py-2 bg-slate-200 text-slate-700 rounded-xl hover:bg-slate-300 transition cursor-pointer">বাতিল</button>
+                    <button type="button" onclick="closeAddModal()" class="px-4 py-2 bg-slate-200 text-slate-700 rounded-xl hover:bg-slate-300 transition cursor-pointer">বাতিল</button>
                     <button type="submit" class="px-5 py-2 bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 transition cursor-pointer">সংরক্ষণ করুন</button>
                 </div>
             </form>
         </div>
     </div>
-
-    <!-- JavaScript Logic -->
+        <!-- JavaScript Application Logic -->
     <script>
-        let students = JSON.parse(localStorage.getItem('tuition_students')) || [];
+        let students = JSON.parse(localStorage.getItem('tuition_master_students')) || [];
+        let currentActiveId = null;
 
-        function openModal() {
-            const modal = document.getElementById('studentModal');
-            modal.classList.remove('hidden');
-            modal.classList.add('flex');
+        function openAddModal() {
+            document.getElementById('addStudentModal').classList.remove('hidden');
+            document.getElementById('addStudentModal').classList.add('flex');
         }
 
-        function closeModal() {
-            const modal = document.getElementById('studentModal');
-            modal.classList.add('hidden');
-            modal.classList.remove('flex');
+        function closeAddModal() {
+            document.getElementById('addStudentModal').classList.add('hidden');
+            document.getElementById('addStudentModal').classList.remove('flex');
             document.getElementById('studentForm').reset();
         }
 
-        // Form Submit Event Listener
+        // Add Student
         document.getElementById('studentForm').addEventListener('submit', function(e) {
             e.preventDefault();
-            
             const name = document.getElementById('name').value.trim();
             const subject = document.getElementById('subject').value.trim();
             const targetDays = parseInt(document.getElementById('targetDays').value) || 16;
             const classTime = document.getElementById('classTime').value;
 
-            if(!name || !subject) {
-                alert('দয়া করে সঠিক তথ্য দিন।');
-                return;
-            }
-
             const newStudent = {
                 id: Date.now(),
-                name: name,
-                subject: subject,
-                targetDays: targetDays,
-                classTime: classTime,
-                attendance: []
+                name,
+                subject,
+                targetDays,
+                classTime,
+                attendance: [], 
+                routine: {      
+                    'শনিবার': classTime,
+                    'রবিবার': classTime,
+                    'সোমবার': classTime,
+                    'মঙ্গলবার': classTime,
+                    'বুধবার': classTime,
+                    'বৃহস্পতিকার': classTime,
+                    'শুক্রবার': ''
+                },
+                topics: [],     
+                homework: []    
             };
 
             students.push(newStudent);
             saveAndRender();
-            closeModal();
+            closeAddModal();
         });
 
-        function deleteStudent(id) {
-            if(confirm('আপনি কি এই ছাত্রের তথ্য মুছে ফেলতে চান?')) {
+        function deleteStudent(id, event) {
+            event.stopPropagation();
+            if(confirm('এই ছাত্রের সমস্ত ডাটা মুছে ফেলতে চান?')) {
                 students = students.filter(s => s.id !== id);
                 saveAndRender();
             }
         }
 
-        function toggleAttendance(studentId, dateStr) {
-            const student = students.find(s => s.id === studentId);
-            if (!student) return;
-
-            const index = student.attendance.indexOf(dateStr);
-            if (index > -1) {
-                student.attendance.splice(index, 1);
-            } else {
-                student.attendance.push(dateStr);
-            }
-            saveAndRender();
-        }
-
-        function updateTime(studentId, newTime) {
-            const student = students.find(s => s.id === studentId);
-            if (student) {
-                student.classTime = newTime;
-                saveAndRender();
-            }
-        }
-
         function saveAndRender() {
-            localStorage.setItem('tuition_students', JSON.stringify(students));
-            renderStudents();
+            localStorage.setItem('tuition_master_students', JSON.stringify(students));
+            if (currentActiveId !== null) {
+                renderProfile(currentActiveId);
+            } else {
+                renderDashboard();
+            }
         }
 
-        function renderStudents() {
-            const container = document.getElementById('student-list');
+        // Dashboard Render
+        function renderDashboard() {
+            document.getElementById('main-view').classList.remove('hidden');
+            document.getElementById('profile-view').classList.add('hidden');
+            currentActiveId = null;
+
+            const container = document.getElementById('student-grid');
             container.innerHTML = '';
 
             if (students.length === 0) {
                 container.innerHTML = `
-                    <div class="col-span-full text-center py-12 bg-white rounded-2xl shadow-sm border border-slate-200">
-                        <i class="fa-solid fa-folder-open text-4xl text-slate-300 mb-3"></i>
-                        <p class="text-slate-500">কোনো ছাত্রের তথ্য যোগ করা হয়নি। উপরের "নতুন ছাত্র যোগ করুন" বাটনে ক্লিক করুন।</p>
+                    <div class="col-span-full text-center py-16 bg-white rounded-2xl shadow-sm border border-slate-200">
+                        <i class="fa-solid fa-users-rectangle text-5xl text-slate-300 mb-3"></i>
+                        <p class="text-slate-500 font-medium">কোনো ছাত্রের প্রোফাইল নেই। উপরে "নতুন ছাত্র যোগ করুন" বাটনে ক্লিক করুন।</p>
                     </div>`;
                 return;
             }
 
             students.forEach(student => {
-                const attendedDays = student.attendance.length;
-                const progressPercent = Math.min(Math.round((attendedDays / student.targetDays) * 100), 100);
-
-                // Generate last 4 days for quick attendance check
-                let daysHtml = '';
-                for (let i = 3; i >= 0; i--) {
-                    const d = new Date();
-                    d.setDate(d.getDate() - i);
-                    const dStr = d.toISOString().split('T')[0];
-                    const dayName = d.toLocaleDateString('bn-BD', { weekday: 'short', day: 'numeric' });
-                    const isChecked = student.attendance.includes(dStr);
-
-                    daysHtml += `
-                        <button onclick="toggleAttendance(${student.id}, '${dStr}')" 
-                            class="px-2.5 py-1.5 text-xs rounded-lg border font-medium transition cursor-pointer ${isChecked ? 'bg-emerald-500 text-white border-emerald-500 shadow-sm' : 'bg-slate-50 text-slate-600 border-slate-200 hover:bg-slate-100'}">
-                            ${dayName} ${isChecked ? '<i class="fa-solid fa-check ml-1"></i>' : ''}
-                        </button>`;
-                }
+                const attended = student.attendance.length;
+                const percent = Math.min(Math.round((attended / student.targetDays) * 100), 100);
 
                 const card = document.createElement('div');
-                card.className = 'bg-white p-6 rounded-2xl shadow-sm border border-slate-200 flex flex-col justify-between';
+                card.className = 'bg-white p-6 rounded-2xl shadow-sm border border-slate-200 hover:shadow-md transition cursor-pointer flex flex-col justify-between';
+                card.onclick = () => openProfile(student.id);
                 card.innerHTML = `
                     <div>
-                        <div class="flex justify-between items-start gap-2 mb-2">
+                        <div class="flex justify-between items-start mb-3">
                             <div>
                                 <h3 class="text-lg font-bold text-slate-800">${student.name}</h3>
-                                <p class="text-xs text-slate-500"><i class="fa-solid fa-book-open mr-1"></i> ${student.subject}</p>
+                                <p class="text-xs text-slate-500"><i class="fa-solid fa-book mr-1"></i> ${student.subject}</p>
                             </div>
-                            <button onclick="deleteStudent(${student.id})" class="text-slate-400 hover:text-red-500 transition cursor-pointer p-1">
+                            <button onclick="deleteStudent(${student.id}, event)" class="text-slate-400 hover:text-red-500 p-1.5 transition">
                                 <i class="fa-solid fa-trash-can"></i>
                             </button>
                         </div>
-
-                        <!-- Target Progress -->
-                        <div class="my-4 bg-slate-50 p-3 rounded-xl border border-slate-100">
+                        
+                        <div class="bg-slate-50 p-3 rounded-xl border border-slate-100 my-4">
                             <div class="flex justify-between text-xs font-semibold mb-1">
-                                <span class="text-slate-600">মাসিক টার্গেট অগ্রগতি:</span>
-                                <span class="text-indigo-600">${attendedDays} / ${student.targetDays} দিন (${progressPercent}%)</span>
+                                <span class="text-slate-600">মাসিক টার্গেট:</span>
+                                <span class="text-indigo-600">${attended} / ${student.targetDays} দিন (${percent}%)</span>
                             </div>
                             <div class="w-full bg-slate-200 h-2 rounded-full overflow-hidden">
-                                <div class="bg-indigo-600 h-full transition-all duration-300" style="width: ${progressPercent}%"></div>
+                                <div class="bg-indigo-600 h-full" style="width: ${percent}%"></div>
                             </div>
                         </div>
-
-                        <!-- Time Config & Reminder -->
-                        <div class="flex items-center justify-between mb-4 text-sm bg-indigo-50/50 p-3 rounded-xl border border-indigo-100/50">
-                            <div class="flex items-center gap-2">
-                                <i class="fa-regular fa-clock text-indigo-600"></i>
-                                <span class="text-slate-600 text-xs">সময়:</span>
-                                <input type="time" value="${student.classTime}" onchange="updateTime(${student.id}, this.value)" class="bg-white px-2 py-1 border rounded-lg text-xs font-medium focus:outline-none focus:ring-1 focus:ring-indigo-500 cursor-pointer">
-                            </div>
-                            <button onclick="setReminder('${student.name}', '${student.classTime}')" class="text-xs bg-indigo-600 text-white px-2.5 py-1.5 rounded-lg hover:bg-indigo-700 transition cursor-pointer shadow-sm">
-                                <i class="fa-regular fa-bell mr-1"></i> রিমাইন্ডার
-                            </button>
-                        </div>
-
-                        <!-- Quick Attendance Days -->
-                        <div>
-                            <p class="text-xs font-medium text-slate-500 mb-2">সাম্প্রতিক হাজিরা (টপকে টিক দিন):</p>
-                            <div class="flex flex-wrap gap-1.5">
-                                ${daysHtml}
-                            </div>
-                        </div>
+                    </div>
+                    <div class="flex justify-between items-center text-xs text-indigo-600 font-semibold pt-2 border-t border-slate-100">
+                        <span><i class="fa-regular fa-clock mr-1"></i> সময়: ${student.classTime}</span>
+                        <span>প্রোফাইল দেখুন <i class="fa-solid fa-chevron-right ml-1"></i></span>
                     </div>
                 `;
                 container.appendChild(card);
             });
         }
 
-        // Reminder Logic
-        function setReminder(studentName, classTime) {
-            if (!("Notification" in window)) {
-                alert("আপনার ব্রাউজার ব্রাউজার নোটিফিকেশন সাপোর্ট করে না।");
-                return;
+        // Open Individual Profile View
+        function openProfile(id) {
+            currentActiveId = id;
+            document.getElementById('main-view').classList.add('hidden');
+            document.getElementById('profile-view').classList.remove('hidden');
+            renderProfile(id);
+        }
+
+        function backToDashboard() {
+            renderDashboard();
+        }
+                function renderProfile(id) {
+            const student = students.find(s => s.id === id);
+            if (!student) return;
+
+            const container = document.getElementById('profile-content');
+            
+            let attendanceBoxes = '';
+            for (let i = 15; i >= 0; i--) {
+                const d = new Date();
+                d.setDate(d.getDate() - i);
+                const dStr = d.toISOString().split('T')[0];
+                const label = d.toLocaleDateString('bn-BD', { month: 'short', day: 'numeric' });
+                const isPresent = student.attendance.includes(dStr);
+
+                attendanceBoxes += `
+                    <button onclick="toggleStudentAttendance(${student.id}, '${dStr}')" 
+                        class="px-3 py-2 text-xs rounded-xl border font-medium transition cursor-pointer ${isPresent ? 'bg-emerald-500 text-white border-emerald-500 shadow-sm' : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50'}">
+                        ${label} ${isPresent ? '<i class="fa-solid fa-check ml-1"></i>' : ''}
+                    </button>`;
             }
 
-            Notification.requestPermission().then(permission => {
-                if (permission === "granted") {
-                    alert(`"${studentName}" এর জন্য ${classTime} সময়ে রিমাইন্ডার সেট করা হয়েছে!`);
-                } else {
-                    alert("নোটিফিকেশন পারমিশন পাওয়া যায়নি। ব্রাউজার সেটিংস থেকে অনুমতি দিন।");
+            let routineRows = '';
+            for (let day in student.routine) {
+                routineRows += `
+                    <div class="flex items-center justify-between bg-slate-50 p-2.5 rounded-xl border border-slate-100">
+                        <span class="text-sm font-medium text-slate-700 w-28">${day}</span>
+                        <input type="time" value="${student.routine[day]}" onchange="updateRoutine(${student.id}, '${day}', this.value)" class="bg-white px-3 py-1 border rounded-lg text-xs font-medium focus:outline-none focus:ring-1 focus:ring-indigo-500">
+                    </div>`;
+            }
+
+            let topicsList = student.topics.length === 0 ? '<p class="text-xs text-slate-400 italic">কোনো টপিক যোগ করা হয়নি।</p>' : '';
+            student.topics.forEach((t) => {
+                topicsList += `
+                    <div class="flex justify-between items-center bg-slate-50 p-3 rounded-xl border border-slate-100 text-sm">
+                        <div>
+                            <span class="font-bold text-indigo-600">${t.title}</span>
+                            <p class="text-xs text-slate-500">${t.date} — ${t.note || ''}</p>
+                        </div>
+                        <button onclick="deleteTopic(${student.id}, ${t.id})" class="text-slate-400 hover:text-red-500 text-xs"><i class="fa-solid fa-trash"></i></button>
+                    </div>`;
+            });
+
+            let hwList = student.homework.length === 0 ? '<p class="text-xs text-slate-400 italic">কোনো হোমওয়ার্ক দেওয়া হয়নি।</p>' : '';
+            student.homework.forEach((hw) => {
+                hwList += `
+                    <div class="flex justify-between items-center bg-slate-50 p-3 rounded-xl border border-slate-100 text-sm">
+                        <div class="flex items-center gap-3">
+                            <input type="checkbox" ${hw.completed ? 'checked' : ''} onchange="toggleHomework(${student.id}, ${hw.id})" class="w-4 h-4 text-indigo-600 rounded cursor-pointer">
+                            <div>
+                                <p class="font-medium ${hw.completed ? 'line-through text-slate-400' : 'text-slate-700'}">${hw.task}</p>
+                                <span class="text-[10px] text-slate-400">তারিখ: ${hw.date}</span>
+                            </div>
+                        </div>
+                        <button onclick="deleteHomework(${student.id}, ${hw.id})" class="text-slate-400 hover:text-red-500 text-xs"><i class="fa-solid fa-trash"></i></button>
+                    </div>`;
+            });
+
+            container.innerHTML = `
+                <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 mb-6 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                    <div>
+                        <h2 class="text-2xl font-bold text-slate-800">${student.name}</h2>
+                        <p class="text-sm text-slate-500"><i class="fa-solid fa-book mr-1"></i> ${student.subject} | টার্গেট: <span class="text-indigo-600 font-semibold">${student.attendance.length} / ${student.targetDays} দিন</span></p>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
+                        <h3 class="text-lg font-bold text-slate-800 mb-3"><i class="fa-solid fa-calendar-check text-indigo-600 mr-2"></i> হাজিরা ট্র্যাকার (Attendance)</h3>
+                        <p class="text-xs text-slate-500 mb-3">তারিখের ওপর ক্লিক করে প্রেজেন্ট/অ্যাবসেন্ট মার্ক করুন:</p>
+                        <div class="grid grid-cols-4 gap-2">
+                            ${attendanceBoxes}
+                        </div>
+                    </div>
+
+                    <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
+                        <h3 class="text-lg font-bold text-slate-800 mb-3"><i class="fa-solid fa-clock text-indigo-600 mr-2"></i> সাপ্তাহিক রুটিন ও সময় পরিবর্তন</h3>
+                        <p class="text-xs text-slate-500 mb-3">বারের নির্দিষ্ট পড়ার সময় পরিবর্তন করুন:</p>
+                        <div class="flex flex-col gap-2 max-h-60 overflow-y-auto">
+                            ${routineRows}
+                        </div>
+                    </div>
+
+                    <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
+                        <h3 class="text-lg font-bold text-slate-800 mb-3"><i class="fa-solid fa-book-open-reader text-indigo-600 mr-2"></i> পড়ানোর টপিকস সংগ্রহ</h3>
+                        <form onsubmit="addTopic(event, ${student.id})" class="mb-4 flex gap-2">
+                            <input type="text" id="topicTitle" placeholder="অধ্যায় বা টপিকের নাম..." required class="flex-1 px-3 py-2 border rounded-xl text-xs focus:ring-1 focus:ring-indigo-500 focus:outline-none">
+                            <input type="text" id="topicNote" placeholder="নোট (যেমন: সূত্র ডেরাইভ)" class="w-1/3 px-3 py-2 border rounded-xl text-xs focus:ring-1 focus:ring-indigo-500 focus:outline-none">
+                            <button type="submit" class="bg-indigo-600 text-white px-4 py-2 rounded-xl text-xs font-semibold hover:bg-indigo-700 cursor-pointer">যোগ</button>
+                        </form>
+                        <div class="flex flex-col gap-2 max-h-48 overflow-y-auto">
+                            ${topicsList}
+                        </div>
+                    </div>
+
+                    <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
+                        <h3 class="text-lg font-bold text-slate-800 mb-3"><i class="fa-solid fa-list-check text-indigo-600 mr-2"></i> হোমওয়ার্ক (Home Work)</h3>
+                        <form onsubmit="addHomework(event, ${student.id})" class="mb-4 flex gap-2">
+                            <input type="text" id="hwTask" placeholder="বাড়ির কাজের বিবরণ..." required class="flex-1 px-3 py-2 border rounded-xl text-xs focus:ring-1 focus:ring-indigo-500 focus:outline-none">
+                            <button type="submit" class="bg-indigo-600 text-white px-4 py-2 rounded-xl text-xs font-semibold hover:bg-indigo-700 cursor-pointer">যোগ</button>
+                        </form>
+                        <div class="flex flex-col gap-2 max-h-48 overflow-y-auto">
+                            ${hwList}
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function toggleStudentAttendance(studentId, dateStr) {
+            const student = students.find(s => s.id === studentId);
+            if (!student) return;
+            const idx = student.attendance.indexOf(dateStr);
+            if (idx > -1) student.attendance.splice(idx, 1);
+            else student.attendance.push(dateStr);
+            saveAndRender();
+        }
+
+        function updateRoutine(studentId, day, newTime) {
+            const student = students.find(s => s.id === studentId);
+            if (student) {
+                student.routine[day] = newTime;
+                saveAndRender();
+            }
+        }
+
+        function addTopic(e, studentId) {
+            e.preventDefault();
+            const student = students.find(s => s.id === studentId);
+            const title = document.getElementById('topicTitle').value.trim();
+            const note = document.getElementById('topicNote').value.trim();
+            const date = new Date().toLocaleDateString('bn-BD');
+
+            if (student && title) {
+                student.topics.push({ id: Date.now(), title, note, date });
+                saveAndRender();
+            }
+        }
+
+        function deleteTopic(studentId, topicId) {
+            const student = students.find(s => s.id === studentId);
+            if (student) {
+                student.topics = student.topics.filter(t => t.id !== topicId);
+                saveAndRender();
+            }
+        }
+
+        function addHomework(e, studentId) {
+            e.preventDefault();
+            const student = students.find(s => s.id === studentId);
+            const task = document.getElementById('hwTask').value.trim();
+            const date = new Date().toLocaleDateString('bn-BD');
+
+            if (student && task) {
+                student.homework.push({ id: Date.now(), task, date, completed: false });
+                saveAndRender();
+            }
+        }
+
+        function toggleHomework(studentId, hwId) {
+            const student = students.find(s => s.id === studentId);
+            if (student) {
+                const hw = student.homework.find(h => h.id === hwId);
+                if (hw) {
+                    hw.completed = !hw.completed;
+                    saveAndRender();
                 }
-            });
+            }
         }
 
-        // Service Worker Registration for PWA Offline Support
-        if ('serviceWorker' in navigator) {
-            window.addEventListener('load', () => {
-                navigator.serviceWorker.register('./sw.js')
-                    .then(reg => console.log('Service Worker Registered'))
-                    .catch(err => console.log('Service Worker Registration Failed', err));
-            });
+        function deleteHomework(studentId, hwId) {
+            const student = students.find(s => s.id === studentId);
+            if (student) {
+                student.homework = student.homework.filter(h => h.id !== hwId);
+                saveAndRender();
+            }
         }
 
-        // Initial Load
-        renderStudents();
+        renderDashboard();
     </script>
 </body>
-      </html>
-      
+</html>
