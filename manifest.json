@@ -1,7 +1,8 @@
 {
   "name": "টিউশন ও স্টাডি ম্যানেজার",
   "short_name": "টিউশন ম্যানেজার",
-  "start_url": "./index.html",
+  "start_url": "./",
+  "scope": "./",
   "display": "standalone",
   "background_color": "#ffffff",
   "theme_color": "#4f46e5",
