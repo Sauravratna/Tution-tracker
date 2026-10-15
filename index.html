@@ -4,6 +4,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>প্রোফেশনাল টিউশন ও স্টাডি ম্যানেজার</title>
+    
+    <!-- PWA Links -->
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#4f46e5">
+
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
     <!-- FontAwesome Icons -->
@@ -70,8 +75,8 @@
                 </div>
             </form>
         </div>
-    </div>
-        <!-- JavaScript Application Logic -->
+                    </div>
+              <!-- JavaScript Application Logic -->
     <script>
         let students = JSON.parse(localStorage.getItem('tuition_master_students')) || [];
         let currentActiveId = null;
@@ -204,7 +209,8 @@
         function backToDashboard() {
             renderDashboard();
         }
-                function renderProfile(id) {
+
+        function renderProfile(id) {
             const student = students.find(s => s.id === id);
             if (!student) return;
 
@@ -381,7 +387,17 @@
             }
         }
 
+        // PWA Service Worker Registration
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('./sw.js')
+                    .then(reg => console.log('Service Worker Registered'))
+                    .catch(err => console.log('SW Registration Failed', err));
+            });
+        }
+
         renderDashboard();
     </script>
 </body>
-</html>
+    </html>
+    
